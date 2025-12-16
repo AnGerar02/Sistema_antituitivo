@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';"
+    />
+
+    <title>Sistema de Ingreso Manual</title>
+
+    <style>
+      /* CSS HARDCORE PARA EVITAR PARPADEOS */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Esto es vital: PROHIBIDO EL SCROLL */
+        background-color: #6b7a8f; /* Color de fondo igual al del juego */
+        overscroll-behavior: none; /* Evita rebotes en Mac/Móviles */
+      }
+
+      canvas {
+        display: block; /* Elimina el borde inferior extra de los elementos inline */
+        outline: none;
+      }
+
+      /* Centrar input y botones si el canvas falla */
+      main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+
+    <script src="https://unpkg.com/p5@1.4.2/lib/p5.min.js"></script>
+  </head>
+  <body>
+    <script src="sketch.js"></script>
+  </body>
+</html>
