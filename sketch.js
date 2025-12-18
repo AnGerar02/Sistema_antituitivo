@@ -1,6 +1,7 @@
 // ==========================================
-// === CONFIGURACIÓN ESTÉTICA (PALETA) ===
+// === CONFIGURACIÓN (COLORES JS) ===
 // ==========================================
+// Mantenemos estas constantes para el dibujo dentro del CANVAS
 const C_BG = "#6B7A8F";
 const C_KEY_BASE = "#526175";
 const C_KEY_ACTIVE = "#D98E5F";
@@ -11,7 +12,7 @@ const C_PANEL_BG = "#3E4C5E";
 const C_ACCENT_LINE = "#8CA0B3";
 
 // ==========================================
-// === ESTADO GENERAL DEL JUEGO ===
+// === ESTADO GENERAL ===
 // ==========================================
 let targetName = "";
 let typedName = "";
@@ -20,23 +21,23 @@ const rows = ["QWERTYUIOP", "ASDFGHJKLÑ", "ZXCVBNM"];
 let activeKey = null;
 let isSolving = false;
 
-// --- ESTADO INICIAL ---
+// --- ELEMENTOS DOM ---
 let nameInput;
 let startButton;
+let enterButton;
 let isChallengeActive = false;
 
-// --- ESTADO DEL ENTER MOLESTO ---
+// --- ESTADO DEL ENTER ---
 let isConfirming = false;
 let confirmationStartMillis = 0;
 const confirmationDuration = 5000;
-let enterButton;
 
-// --- VARIABLES DE LOS DESAFÍOS ---
+// --- VARIABLES DE JUEGO ---
 let currentChallenge = 0;
 let lastChallenge = 0;
 let challengeStartMillis = 0;
 
-// Variables de los juegos
+// Variables internas de minijuegos
 let sliders = [];
 let targetValues = [];
 let patternColors = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F"];
@@ -51,51 +52,44 @@ let dragTargetPos;
 let isDraggingActive = false;
 const trackingDuration = 3000;
 
-// --- FUNCIÓN SETUP ---
+// --- SETUP ---
 function setup() {
-  // USAMOS window.innerWidth en lugar de windowWidth para mayor precisión inicial
   createCanvas(window.innerWidth, window.innerHeight);
-
-  // Forzar estilos al body directamente con JS nativo (más seguro que p5.dom)
-  document.body.style.overflow = "hidden";
-  document.body.style.margin = "0";
-  document.body.style.backgroundColor = C_BG;
-
   textFont("Courier New");
 
-  // Crear Input
+  // 1. Crear Input y asignar clase CSS
   nameInput = createInput("");
   nameInput.attribute("placeholder", "NOMBRE A DELETREAR...");
-  styleInput(nameInput);
+  nameInput.addClass("tech-input"); // <--- ¡AQUÍ CONECTAMOS CON EL CSS!
 
-  // Crear Botón de Inicio
+  // 2. Crear Botón Inicio y asignar clase CSS
   startButton = createButton("INICIAR SISTEMA");
-  styleTechnicalButton(startButton, C_KEY_ACTIVE);
+  startButton.addClass("tech-btn"); // <--- ¡CONEXIÓN CSS!
   startButton.mousePressed(startChallenge);
 
+  // Posicionar elementos
   centerIntroElements();
 
-  // Crear Sliders
+  // 3. Crear Sliders
   for (let i = 0; i < 3; i++) {
     sliders[i] = createSlider(0, 10, 0, 0.05);
-    sliders[i].style("width", "120px");
+    sliders[i].style("width", "120px"); // Los sliders son rebeldes, mejor dejar tamaño aquí
     sliders[i].position(-200, -200);
     sliders[i].input(checkSliders);
     sliders[i].hide();
   }
 
-  // Crear Botón Enter
+  // 4. Crear Botón Enter y asignar clase CSS
   enterButton = createButton("ENTER [FINALIZAR PROCESO]");
-  styleTechnicalButton(enterButton, C_KEY_ACTIVE);
+  enterButton.addClass("tech-btn"); // <--- ¡CONEXIÓN CSS!
   enterButton.mousePressed(triggerAnnoyingEnter);
   enterButton.hide();
 
   dragTargetPos = createVector(0, 0);
 }
 
-// --- SOLUCIÓN AL PARPADEO: DEBOUNCING DEL RESIZE ---
+// --- RESPONSIVIDAD ---
 function windowResized() {
-  // Solo redimensionar si el cambio es significativo (evita bucle por barra de scroll)
   if (abs(windowWidth - width) > 10 || abs(windowHeight - height) > 10) {
     resizeCanvas(windowWidth, windowHeight);
     centerIntroElements();
@@ -106,38 +100,13 @@ function windowResized() {
 }
 
 function centerIntroElements() {
-  // Usamos width/height del canvas, no windowWidth
   let centerX = width / 2;
   let centerY = height / 2;
   nameInput.position(centerX - 175, centerY - 40);
   startButton.position(centerX - 100, centerY + 20);
 }
 
-function styleInput(inp) {
-  inp.style("font-family", "Courier New, monospace");
-  inp.style("font-size", "20px");
-  inp.style("padding", "10px");
-  inp.style("width", "350px");
-  inp.style("border", "2px solid " + C_ACCENT_LINE);
-  inp.style("background", C_TEXT_LIGHT);
-  inp.style("color", C_TEXT_DARK);
-  inp.style("text-align", "center");
-  inp.style("outline", "none");
-}
-
-function styleTechnicalButton(btn, bgColor) {
-  btn.style("font-family", "Courier New, monospace");
-  btn.style("font-size", "18px");
-  btn.style("padding", "10px 20px");
-  btn.style("background", bgColor);
-  btn.style("color", C_TEXT_LIGHT);
-  btn.style("border", "2px solid " + C_ACCENT_LINE);
-  btn.style("border-radius", "4px");
-  btn.style("cursor", "pointer");
-  btn.style("font-weight", "bold");
-}
-
-// --- INICIO DEL JUEGO ---
+// --- LÓGICA DE INICIO ---
 function startChallenge() {
   let name = nameInput.value().trim().toUpperCase();
   if (name.length > 0) {
@@ -157,7 +126,6 @@ function initializeKeyboard() {
   let paddingX = 12;
   let paddingY = 140;
 
-  // Cálculos basados en 'height' y 'width' del canvas actual
   let totalKeyboardHeight =
     rows.length * keySize + (rows.length - 1) * paddingY;
   let startY = height / 2 - totalKeyboardHeight / 2 + 50;
@@ -186,11 +154,10 @@ function initializeKeyboard() {
   }
 }
 
-// --- DRAW LOOP PRINCIPAL ---
+// --- BUCLE DRAW ---
 function draw() {
-  background(C_BG); // Dibujar fondo siempre primero
+  background(C_BG);
 
-  // Restaurar modos por seguridad al inicio de cada frame
   rectMode(CORNER);
   ellipseMode(CENTER);
   textAlign(LEFT, TOP);
@@ -204,7 +171,6 @@ function draw() {
   drawKeyboard();
 
   if (isSolving) {
-    // Fondo oscuro semitransparente (Dimmer)
     push();
     fill(30, 40, 50, 150);
     noStroke();
@@ -223,7 +189,7 @@ function draw() {
   handleConfirmation();
 }
 
-// --- PANTALLAS Y HUD ---
+// --- PANTALLAS DE INTERFAZ ---
 function drawIntroScreen() {
   let centerX = width / 2;
   let centerY = height / 2;
@@ -268,7 +234,7 @@ function drawHeader() {
   fill(C_KEY_ACTIVE);
   text(displayTyped, marginX, marginY + 90);
 
-  // Asegurar que el botón Enter siga la posición de la ventana
+  // Asegurar posición del Enter
   if (typedName.length === targetName.length && !isConfirming) {
     enterButton.position(width / 2 - 120, height - 100);
     enterButton.show();
@@ -349,7 +315,7 @@ function drawKeyboard() {
   pop();
 }
 
-// --- LOGICA DE CLICS ---
+// --- INTERACCIÓN Y LÓGICA ---
 function mousePressed() {
   if (!isChallengeActive || isConfirming) return;
 
@@ -435,7 +401,7 @@ function resetSystem() {
   for (let s of sliders) s.hide();
 }
 
-// --- PANELES TÉCNICOS ---
+// --- PANELES Y JUEGOS ---
 function drawTechnicalPanel(x, y, w, h, title) {
   push();
   rectMode(CENTER);
@@ -462,7 +428,7 @@ function drawTechnicalPanel(x, y, w, h, title) {
   pop();
 }
 
-// --- 1. SLIDERS ---
+// 1. SLIDERS
 function setupSliders(key) {
   targetValues = [
     floor(random(1, 9)) + 0.5,
@@ -515,7 +481,7 @@ function drawChallengeSliders() {
   pop();
 }
 
-// --- 2. PATRÓN ---
+// 2. PATRÓN
 function setupPattern() {
   targetPattern = [];
   inputPattern = [];
@@ -586,7 +552,7 @@ function handlePatternClick() {
   }
 }
 
-// --- 3. RITMO ---
+// 3. RITMO
 function setupRhythm() {
   clickCounter = 0;
   lastClickTime = millis();
@@ -665,7 +631,7 @@ function handleRhythmClick() {
   }
 }
 
-// --- 4. ARRASTRE ---
+// 4. ARRASTRE
 function setupDrag() {
   isDraggingActive = false;
   dragTargetPos = createVector(width / 2, height / 2 + 50);
