@@ -1,7 +1,6 @@
 // ==========================================
 // === CONFIGURACIÓN (COLORES JS) ===
 // ==========================================
-// Mantenemos estas constantes para el dibujo dentro del CANVAS
 const C_BG = "#6B7A8F";
 const C_KEY_BASE = "#526175";
 const C_KEY_ACTIVE = "#D98E5F";
@@ -32,6 +31,12 @@ let isConfirming = false;
 let confirmationStartMillis = 0;
 const confirmationDuration = 5000;
 
+// --- VARIABLES DE ERROR (NUEVO) ---
+let showErrorScreen = false;
+let errorMessage = "";
+let errorStartTime = 0;
+const errorDuration = 3000; // 3 segundos de castigo visual
+
 // --- VARIABLES DE JUEGO ---
 let currentChallenge = 0;
 let lastChallenge = 0;
@@ -57,31 +62,30 @@ function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
   textFont("Courier New");
 
-  // 1. Crear Input y asignar clase CSS
+  // 1. Crear Input
   nameInput = createInput("");
   nameInput.attribute("placeholder", "NOMBRE A DELETREAR...");
-  nameInput.addClass("tech-input"); // <--- ¡AQUÍ CONECTAMOS CON EL CSS!
+  nameInput.addClass("tech-input");
 
-  // 2. Crear Botón Inicio y asignar clase CSS
+  // 2. Crear Botón Inicio
   startButton = createButton("INICIAR SISTEMA");
-  startButton.addClass("tech-btn"); // <--- ¡CONEXIÓN CSS!
+  startButton.addClass("tech-btn");
   startButton.mousePressed(startChallenge);
 
-  // Posicionar elementos
   centerIntroElements();
 
   // 3. Crear Sliders
   for (let i = 0; i < 3; i++) {
     sliders[i] = createSlider(0, 10, 0, 0.05);
-    sliders[i].style("width", "120px"); // Los sliders son rebeldes, mejor dejar tamaño aquí
+    sliders[i].style("width", "120px");
     sliders[i].position(-200, -200);
     sliders[i].input(checkSliders);
     sliders[i].hide();
   }
 
-  // 4. Crear Botón Enter y asignar clase CSS
+  // 4. Crear Botón Enter
   enterButton = createButton("ENTER [FINALIZAR PROCESO]");
-  enterButton.addClass("tech-btn"); // <--- ¡CONEXIÓN CSS!
+  enterButton.addClass("tech-btn");
   enterButton.mousePressed(triggerAnnoyingEnter);
   enterButton.hide();
 
@@ -116,6 +120,7 @@ function startChallenge() {
     startButton.hide();
     initializeKeyboard();
   } else {
+    // Usamos alert solo aquí al principio porque no ha empezado el juego gráfico
     alert("ERROR: Ingrese un nombre para iniciar el protocolo.");
   }
 }
@@ -154,7 +159,7 @@ function initializeKeyboard() {
   }
 }
 
-// --- BUCLE DRAW ---
+// --- BUCLE DRAW (CONTROLADOR PRINCIPAL) ---
 function draw() {
   background(C_BG);
 
@@ -162,6 +167,17 @@ function draw() {
   ellipseMode(CENTER);
   textAlign(LEFT, TOP);
 
+  // 1. VERIFICACIÓN DE PANTALLA DE ERROR (PRIORIDAD ALTA)
+  if (showErrorScreen) {
+    drawErrorScreen();
+    // Temporizador: Si pasaron 3 segundos, quitar error
+    if (millis() - errorStartTime > errorDuration) {
+      showErrorScreen = false;
+    }
+    return; // Detener el dibujo del resto del juego
+  }
+
+  // 2. Si no hay error, flujo normal
   if (!isChallengeActive) {
     drawIntroScreen();
     return;
@@ -189,7 +205,41 @@ function draw() {
   handleConfirmation();
 }
 
-// --- PANTALLAS DE INTERFAZ ---
+// --- PANTALLA DE ERROR (REEMPLAZO DE ALERT) ---
+function drawErrorScreen() {
+  push();
+  // Fondo rojo de alarma
+  fill(80, 0, 0, 240);
+  rectMode(CORNER);
+  noStroke();
+  rect(0, 0, width, height);
+
+  // Caja de mensaje
+  rectMode(CENTER);
+  fill(40, 0, 0);
+  stroke(255, 50, 50);
+  strokeWeight(3);
+  rect(width / 2, height / 2, 600, 200, 10);
+
+  // Textos
+  textAlign(CENTER, CENTER);
+  noStroke();
+
+  fill(255, 80, 80);
+  textSize(24);
+  text(">>> ERROR CRÍTICO DEL SISTEMA <<<", width / 2, height / 2 - 40);
+
+  fill(255);
+  textSize(16);
+  text("CAUSA: " + errorMessage, width / 2, height / 2 + 10);
+
+  fill(180);
+  textSize(14);
+  text("[ REINICIANDO BUFFER DE MEMORIA... ]", width / 2, height / 2 + 60);
+  pop();
+}
+
+// --- PANTALLAS DE INTERFAZ NORMAL ---
 function drawIntroScreen() {
   let centerX = width / 2;
   let centerY = height / 2;
@@ -234,7 +284,6 @@ function drawHeader() {
   fill(C_KEY_ACTIVE);
   text(displayTyped, marginX, marginY + 90);
 
-  // Asegurar posición del Enter
   if (typedName.length === targetName.length && !isConfirming) {
     enterButton.position(width / 2 - 120, height - 100);
     enterButton.show();
@@ -317,7 +366,7 @@ function drawKeyboard() {
 
 // --- INTERACCIÓN Y LÓGICA ---
 function mousePressed() {
-  if (!isChallengeActive || isConfirming) return;
+  if (!isChallengeActive || isConfirming || showErrorScreen) return; // Bloquear clic si hay error
 
   if (isSolving) {
     if (currentChallenge === 2) handlePatternClick();
@@ -382,12 +431,14 @@ function completeLetter() {
   resetSystem();
 }
 
+// --- FUNCIÓN DE ERROR (CASTIGO) MODIFICADA ---
 function failTotal(reason) {
-  alert(
-    ">>> ERROR CRÍTICO DEL SISTEMA <<<\nCausa: " +
-      reason +
-      "\n\nMEDIDA: Reinicio total del buffer."
-  );
+  // Configurar pantalla de error
+  errorMessage = reason;
+  showErrorScreen = true;
+  errorStartTime = millis();
+
+  // Reiniciar lógica del juego (Castigo)
   typedName = "";
   for (let k of keyboard) k.isSolved = false;
   resetSystem();

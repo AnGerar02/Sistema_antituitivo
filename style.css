@@ -5,9 +5,9 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* ¡Vital para que no parpadee! */
-  background-color: #6b7a8f; /* C_BG */
-  overscroll-behavior: none;
+  overflow: hidden; /* ¡VITAL! Esto elimina el parpadeo negro */
+  background-color: #6b7a8f; /* Color de fondo base */
+  overscroll-behavior: none; /* Evita rebote en móviles */
   font-family: "Courier New", monospace; /* Fuente técnica */
 }
 
@@ -28,9 +28,9 @@ canvas {
   outline: none;
 
   /* Colores de tu paleta */
-  border: 2px solid #8ca0b3; /* C_ACCENT_LINE */
-  background-color: #e6e9ed; /* C_TEXT_LIGHT */
-  color: #2c3e50; /* C_TEXT_DARK */
+  border: 2px solid #8ca0b3;
+  background-color: #e6e9ed;
+  color: #2c3e50;
 }
 
 /* Estilo para los Botones (Iniciar y Enter) */
@@ -43,15 +43,15 @@ canvas {
   border-radius: 4px;
 
   /* Colores de tu paleta */
-  background-color: #d98e5f; /* C_KEY_ACTIVE (Naranja) */
-  color: #e6e9ed; /* C_TEXT_LIGHT */
-  border: 2px solid #8ca0b3; /* C_ACCENT_LINE */
+  background-color: #d98e5f; /* Naranja */
+  color: #e6e9ed; /* Blanco */
+  border: 2px solid #8ca0b3;
 }
 
 .tech-btn:hover {
-  background-color: #c47f53; /* Un poco más oscuro al pasar el mouse */
+  background-color: #c47f53;
 }
 
 .tech-btn:active {
-  background-color: #4a6c96; /* Azul al hacer clic */
+  background-color: #4a6c96; /* Azul al clic */
 }
